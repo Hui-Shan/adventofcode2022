@@ -2,6 +2,9 @@ class Day2
 {
     public static string getMove(char letter)
     {
+        /*
+        Given a char, return the move associated (A|X -> rock, B|Y -> paper, C|Z -> scissors)
+        */
         string move;
         if ((letter == 'A') || (letter == 'X'))
         {
@@ -18,6 +21,10 @@ class Day2
 
     public static int getMoveScore(string move)
     {
+        /*
+        Return the score associated with a move
+        */
+
         int score = 0;
         if (move == "rock")
         {
@@ -36,6 +43,10 @@ class Day2
 
     public static int getMatchScore(char opponent, char me)
     {
+        /*
+        Given the opponent's move and mine, return match score
+        */
+
         string move1 = getMove(opponent);
         string move2 = getMove(me);
 
@@ -58,6 +69,10 @@ class Day2
 
     public static string getMyMove(string opponentMove, int result)
     {
+        /*
+        Given the opponent's move and the match result, return what my move was
+        */
+        
         string myMove;
         if (result == 3)
         {
@@ -101,6 +116,10 @@ class Day2
 
     public static int getResultValue(char charIn)
     {
+        /*
+        Given the match result, return the number of points (win Z:= 6, draw Y:=3, lose X:=0)
+        */
+
         int result;
         if (charIn == 'Y')
         {
@@ -119,6 +138,10 @@ class Day2
 
     public static char getMyLetter(string myMove)
     {
+        /*
+        Given my move, return my letter (rock -> X, paper -> Y, scissors -> Z)
+        */
+
         char mee;
         if (myMove == "rock")
         {
@@ -136,13 +159,12 @@ class Day2
 
     static void Main()
     {
-        string infile = "input.txt";        
-        
-        // // Read each line of the file into a string array. Each element
-        // // of the array is one line of the file.
-        string[] lines = System.IO.File.ReadAllLines(infile);
-        // string[] lines = new string[3]{"A Y", "B X", "C Z"};
+        string infile = "input.txt";                
+        string[] real = System.IO.File.ReadAllLines(infile);
+        string[] test = new string[3]{"A Y", "B X", "C Z"};
+        string[] lines = real;
 
+        // Compute total score if second char is your move
         int totalScore1 = 0;
         foreach (string line in lines)
         {
@@ -154,13 +176,13 @@ class Day2
         int res1 = totalScore1;
         Console.WriteLine("Part 1: " + res1);
         
+        // Compute total score if second char is the match result
         int totalScore2 = 0;
         foreach (string line in lines)
         {
             char opp = line[0];
             char result_c = line[2];
-            int result = getResultValue(result_c);            
-            // Console.WriteLine(getMove(opp));            
+            int result = getResultValue(result_c);                                    
             string myMove = getMyMove(getMove(opp), result);
             char mee = getMyLetter(myMove);
             totalScore2 += getMatchScore(opp, mee);

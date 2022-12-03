@@ -2,12 +2,10 @@ class ReadFromFile
 {
     static void Main()
     {
-        string infile = "input.txt";        
-       
-        // // Read each line of the file into a string array. Each element
-        // // of the array is one line of the file.
+        string infile = "input.txt";
         string[] lines = System.IO.File.ReadAllLines(infile);
 
+        // Part 1: Get the maximum amount of calories that an Elf is carrying
         List<int> calories = new List<int>();
         int sum = 0;
         foreach (string line in lines)
@@ -26,6 +24,8 @@ class ReadFromFile
         int res1 = calories.Max();
         Console.WriteLine("Part 1: " + res1);
 
+
+        // Part 2: Get the sum of the top 3 highest amounts of calories that an Elf is carrying
         calories.Sort();
         calories.Reverse();
         
