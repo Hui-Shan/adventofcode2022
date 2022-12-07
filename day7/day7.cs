@@ -201,7 +201,7 @@ class Day7
             "7214296 k"
         }; 
 
-        string[] input = test; //real; 
+        string[] input = real; 
 
         Directory structure = new Directory(input);
         Console.WriteLine(structure.ToString());
