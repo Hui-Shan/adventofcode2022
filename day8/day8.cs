@@ -8,7 +8,8 @@ class Day8
 
         public TreePatch(string[] input)
         {
-    
+            // Constructs TreePatch object from string array input
+
             nRows = input.Length;
             nCols = input[0].Length;
             treeHeights = new int[nRows, nCols];
@@ -41,9 +42,93 @@ class Day8
                     }
                 }
             }
-
             
             return res;
+        }
+
+        public Dictionary<string, List<int>> getLinesOfSight(int y, int x)
+        {
+            // Returns dictionary with Lists of lines of sights as values
+
+            List<int> topHeights = new List<int>();
+            List<int> bottomHeights = new List<int>();
+            List<int> leftHeights = new List<int>();
+            List<int> rightHeights = new List<int>();
+
+            for (int ii = 0; ii < nCols; ii++)
+            {
+                if (ii < x) leftHeights.Add(treeHeights[y, ii]);
+                if (ii > x) rightHeights.Add(treeHeights[y, ii]);
+            }
+            for (int jj = 0; jj < nRows; jj++)
+            {
+                if (jj < y) topHeights.Add(treeHeights[jj, x]);
+                if (jj > y) bottomHeights.Add(treeHeights[jj, x]);
+            }
+
+            leftHeights.Reverse();
+            topHeights.Reverse();
+
+            Dictionary<string, List<int>> linesOfSight = new Dictionary<string, List<int>>()
+            {
+                { "top", topHeights },                
+                { "left", leftHeights },
+                { "bottom", bottomHeights },
+                { "right", rightHeights }
+            };
+
+            return linesOfSight;
+        }
+
+        public int getMaxScenicScore()
+        {
+            // Returns maximum scenic score for the TreePatch object
+
+            int maxScore = 0;
+
+            for (int ii = 0; ii < nCols; ii++)
+            {
+                for (int jj = 0; jj < nRows; jj++)
+                {
+                    int score = getScenicScore(jj, ii);
+                    if (score > maxScore)
+                        maxScore = score;
+                }
+            }
+
+            return maxScore;
+        }
+
+        public int getViewingDistance(int height, List<int> sightLine)
+        {
+            // Returns the viewing distance give own tree height and sightline List viewed from own tree
+            
+            int distance = 0;
+            foreach (int h in sightLine)
+            {
+                distance += 1;
+                if (h >= height)
+                {
+                    break;                    
+                }
+            }            
+            return distance;
+        }
+
+        public int getScenicScore(int y, int x)
+        {
+            // Returns the scenic score for a location (y, x) in the TreePatch
+
+            Dictionary<string, List<int>> linesOfSight = getLinesOfSight(y, x);
+            int score = 1;
+            int ownHeight = treeHeights[y, x];
+            
+            foreach(KeyValuePair<string, List<int>> elem in linesOfSight)
+            {                                
+                int dist = getViewingDistance(ownHeight, elem.Value);            
+                score *= dist;
+            }
+            return score;
         }
 
         public bool isTreeVisible(int y, int x)
@@ -63,21 +148,12 @@ class Day8
                 visible = true;
             }
             else 
-            {
-                // for inside trees, compare the values
-                for (int ii = 0; ii < nCols; ii++)
+            {            
+                var sightLines = getLinesOfSight(y, x);
+                
+                // if in any sightlines, the height of current tree is higher than all that of the trees in the line, tree is visible
+                if (height > sightLines["top"].Max() | height > sightLines["left"].Max() | height > sightLines["bottom"].Max() | height > sightLines["right"].Max())
                 {
-                    if (ii < x) leftHeights.Add(treeHeights[y, ii]);
-                    if (ii > x) rightHeights.Add(treeHeights[y, ii]);
-                }
-                for (int jj = 0; jj < nRows; jj++)
-                {
-                    if (jj < y) topHeights.Add(treeHeights[jj, x]);
-                    if (jj > y) bottomHeights.Add(treeHeights[jj, x]);
-                }
-
-                if ((height > topHeights.Max()) | (height > bottomHeights.Max()) | (height > leftHeights.Max()) | (height > rightHeights.Max()))
-                {                    
                     visible = true;
                 }                
                 // Console.WriteLine("Tree with " + height + " at y=" + y + ", x=" + x + " is visible? " + visible);
@@ -104,6 +180,10 @@ class Day8
         // Part 1 
         int res1 = patch.getNumberVisibleTrees();
         Console.WriteLine("Res1: " + res1);
+
+        // Part 2
+        int res2 = patch.getMaxScenicScore();
+        Console.WriteLine("Res2: " + res2);
 
     }
 }
