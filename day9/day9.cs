@@ -12,6 +12,45 @@ class Day9
             y = initY;                        
             coordinateHistory.Add((x, y));
         }
+
+        
+        public bool knotIsPulled(Knot other)
+        {
+            return ((other.x - this.x)*(other.x - this.x) + (other.y - this.y)*(other.y - this.y)) > 2;
+        }
+
+        public void setNewKnotPosition(Knot other)
+        {
+            if (knotIsPulled(other))
+            {
+                this.x += Math.Sign(other.x - this.x);
+                this.y += Math.Sign(other.y - this.y);               
+                this.coordinateHistory.Add((this.x, this.y));
+            }            
+        }
+
+        public void moveKnot(string direction)
+        {
+            if (direction == "R")
+            {
+                this.x += 1;
+            }
+            else if (direction == "L")
+            {
+                this.x -= 1;
+            }
+            else if (direction == "U")
+            {
+                this.y += 1;
+            }
+            else if (direction == "D"){
+                this.y -= 1;
+            }
+            else
+            {
+                Console.WriteLine("Unknown direction. Don't do anything");
+            }
+        }
         
         public int getNumberOfUniquePositions()
         {
@@ -26,53 +65,19 @@ class Day9
 
     class Rope
     {
-        public Knot head;
-        public Knot tail;
+        // public Knot head;
+        // public Knot tail;
+        public List<Knot> knots = new List<Knot>();
         private string[] instructions; 
 
-        public Rope(string[] instructionsIn)
+        public Rope(int nKnots, string[] instructionsIn)
         {
-            head = new Knot(0, 0);
-            tail = new Knot(0, 0);
+            
+            for (int ii = 0; ii < nKnots; ii++)
+            {
+                knots.Add(new Knot(0, 0));
+            }                     
             instructions = instructionsIn;
-        }
-
-        public bool tailIsPulled()
-        {
-            return ((head.x - tail.x)*(head.x - tail.x) + (head.y - tail.y)*(head.y - tail.y)) > 2;
-        }
-
-        public void setNewTailPosition()
-        {
-            if (tailIsPulled())
-            {
-                tail.x += Math.Sign(head.x - tail.x);
-                tail.y += Math.Sign(head.y - tail.y);               
-                tail.coordinateHistory.Add((tail.x, tail.y));
-            }            
-        }
-
-        public void moveHead(string direction)
-        {
-            if (direction == "R")
-            {
-                head.x += 1;
-            }
-            else if (direction == "L")
-            {
-                head.x -= 1;
-            }
-            else if (direction == "U")
-            {
-                head.y += 1;
-            }
-            else if (direction == "D"){
-                head.y -= 1;
-            }
-            else
-            {
-                Console.WriteLine("Unknown direction. Don't do anything");
-            }
         }
 
         public void followInstructions()
@@ -91,9 +96,16 @@ class Day9
 
             for (int ii = 0; ii < steps; ii++)
             {
-                moveHead(direction);
-                setNewTailPosition();
-            }            
+                for (int kk = 0; kk < knots.Count - 1; kk++)
+                {                                        
+                    if (kk == 0){
+                        knots[kk].moveKnot(direction);                    
+                    }                        
+                    knots[kk + 1].setNewKnotPosition(knots[kk]);
+                }                
+            }
+            // Console.WriteLine(line);
+            // Console.WriteLine(knots[knots.Count - 1]);
         }
     }
 
@@ -102,19 +114,29 @@ class Day9
         string[] real = System.IO.File.ReadAllLines("input.txt");
         string[] test = System.IO.File.ReadAllLines("testinput.txt");
 
-        var input = real; // test;
+        var input = real;  //test;        
+        int[] numberOfKnots = new int[2]{2, 10};
+        
+        // int num;
+        // int res; 
+        
+        for (int jj = 0; jj < numberOfKnots.Length; jj++)
+        {
+            int num = numberOfKnots[jj];
+            Console.WriteLine("Number of Knots: " + num);
+            Rope myRope = new Rope(num, input);
+            
+            Console.WriteLine("Initial state");
+            Console.WriteLine("H: " + myRope.knots[0]);
+            Console.WriteLine("T: " + myRope.knots[num - 1]);
+            myRope.followInstructions();
 
-        Rope myRope = new Rope(input);
-        Console.WriteLine("Initial state");
-        Console.WriteLine("H: " + myRope.head);
-        Console.WriteLine("T: " + myRope.tail);
-        myRope.followInstructions();
+            Console.WriteLine("End state");
+            Console.WriteLine("H: " + myRope.knots[0]);
+            Console.WriteLine("T: " + myRope.knots[num - 1]);
 
-        Console.WriteLine("End state");
-        Console.WriteLine("H: " + myRope.head);
-        Console.WriteLine("T: " + myRope.tail);
-
-        int res1 = myRope.tail.getNumberOfUniquePositions();
-        Console.WriteLine(res1);
+            int res = myRope.knots[num - 1].getNumberOfUniquePositions();
+            Console.WriteLine("Part " + (jj + 1) + ": " + res);
+        }
     }
 }
