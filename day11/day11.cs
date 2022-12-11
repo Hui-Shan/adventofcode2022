@@ -73,8 +73,7 @@ class Day11
                 monkeys.Add(currentMonkey);                
 
                 dividerProduct *= divisor;
-            }
-            Console.WriteLine(dividerProduct);         
+            }            
         }
 
         public void doRounds(int numberOfRounds, bool reduceWorryLevel = true)
@@ -157,7 +156,7 @@ class Day11
             long res = 1; 
             for (int ii = 0; ii < n; ii++)
             {
-                Console.WriteLine(inspections[ii]);
+                // Console.WriteLine(inspections[ii]);
                 res *= inspections[ii];
             }                
             return res;
