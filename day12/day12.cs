@@ -53,33 +53,29 @@ class Day12
     {
         private char startSymbol = 'S';
         private char endSymbol = 'E';
+        private string[] Input;
         int height;
         int width; 
-        Location[,] map;
-        Location startLoc;        
+        Location[,] map;        
         List<Location> candidates;
 
         public HeightMap(string[] input)
         {
             height = input.Length;
             width = input[0].Length;
+            Input = input;
 
             map = new Location[height, width];
             
             for (int jj = 0; jj < height; jj++)
             {                
-                char[] chars = input[jj].ToCharArray();
+                char[] chars = Input[jj].ToCharArray();
                 for (int ii = 0; ii < width; ii++)
-                {
-                    map[jj, ii] = new Location(ii, jj, chars[ii]);                    
+                {                    
+                    map[jj, ii] = new Location(ii, jj, chars[ii]);
                 }
             }
-                        
             candidates = new List<Location>();
-            
-            startLoc = getStartLocation();
-            startLoc.NumSteps = 0;
-            candidates.Add(startLoc);
         }
 
         public bool reachedEndLocation()
@@ -193,13 +189,33 @@ class Day12
             return getSymbolLocation(endSymbol);
         }
 
-        public int findPath()
-        {
-            while (!reachedEndLocation())
+        public void resetMap()
+        {                
+            for (int jj = 0; jj < height; jj++)
+            {                                
+                for (int ii = 0; ii < width; ii++)
+                {                    
+                    map[jj, ii].IsVisited = false;
+                    map[jj, ii].NumSteps = Location.maxSteps;
+                }
+            }
+            candidates = new List<Location>();
+        }
+
+        public int findPathFrom(Location startLoc, int maxCycles = 1000)
+        {                                                                    
+            startLoc.NumSteps = 0;
+            candidates.Add(startLoc);            
+            while (!reachedEndLocation() && (candidates.Count > 0))
             {
-                visitNextLoc();
+                visitNextLoc();                
             }
             return getEndLocation().NumSteps;
+        }
+
+        public int solvePart1()
+        {
+            return findPathFrom(getStartLocation());
         }
 
         public override string ToString()
@@ -215,6 +231,34 @@ class Day12
             }
             return res;
         }
+
+        public List<Location> getLocationsForHeighta()
+        {                                                                    
+            List<Location> allLocations = new List<Location>();
+            foreach (Location loc in map)
+            {                               
+                if (('a' == loc.Symbol))
+                {
+                    allLocations.Add(loc);
+                }
+            }
+            return allLocations;
+        }
+
+        public int solvePart2(int maxCycles)
+        {
+            List<Location> allALocs = getLocationsForHeighta();    
+            Console.WriteLine(allALocs.Count);         
+            List<int> shortestLengths = new List<int>();
+            
+            foreach(Location loc in allALocs)
+            {                
+                resetMap();
+                int minSteps = findPathFrom(loc, maxCycles);
+                shortestLengths.Add(minSteps);
+            }
+            return shortestLengths.Min();            
+        }
     }
     
     public static void Main(string[] args)
@@ -222,15 +266,17 @@ class Day12
         string[] real = System.IO.File.ReadAllLines("input.txt");
         string[] test = System.IO.File.ReadAllLines("testinput.txt");
 
-        string[] input = real;
+        string[] input = real; //test;
         HeightMap myHeightMap = new HeightMap(input);
         Console.WriteLine(myHeightMap);
+        
         myHeightMap.getStartLocation().printCoordinatesValue();
         myHeightMap.getEndLocation().printCoordinatesValue();
 
-        int res1 = myHeightMap.findPath();        
+        int res1 = myHeightMap.solvePart1();     
         Console.WriteLine("Part 1: " + res1);
 
-        
+        int res2 = myHeightMap.solvePart2(1000);     
+        Console.WriteLine("Part 2: " + res2);
     }
 }
