@@ -106,7 +106,13 @@ class Day17
         string JetStream;
         int jetIndex = 0; 
         char rockChar = '#';
-        char airChar = '.';
+        char airChar = '.';        
+        public List<int> jetIndices = new List<int>();
+        List<(int, string?)> fingerPrint = new List<(int, string?)>();
+        public int jetIndexToMatch = -1;
+
+        List<int> towerHeights = new List<int>();
+        List<int> towerRocks = new List<int>();
 
         public Chamber(string jet, int width = 7)
         {
@@ -114,6 +120,13 @@ class Day17
             Lines = new List<char[]>();
             JetStream = jet.Trim();            
             NumberOfRocks = 0;
+        }
+
+        public void resetChamber()
+        {
+            Lines = new List<char[]>();
+            NumberOfRocks = 0;
+            jetIndex = 0;
         }
 
         public int getNumberOfLines()
@@ -132,10 +145,25 @@ class Day17
             // Add new rock in x=2, y=max height + 3
             Shape nextRock = new Shape(rockNum, X: 2, Y: getNumberOfLines() + 3);
 
+            if (Lines.Count > 25 && jetIndex > 0 && jetIndexToMatch >= 0 && ((jetIndex % JetStream.Length) == jetIndexToMatch))
+            {
+                var currentPrint = (rockNum, Lines.GetRange(Lines.Count - 25, 25).Select(c => new string(c)).Aggregate("", (t, s) => t + s));
+                if (fingerPrint.Count == 0)
+                {
+                    fingerPrint.Add(currentPrint);
+                } 
+                else if (fingerPrint.Contains(currentPrint))
+                {                    
+                    towerRocks.Add(NumberOfRocks);
+                    towerHeights.Add(getNumberOfLines());                    
+                }                               
+            }
+
             // Determine movement of rock due to jetstream and dropping until the rock comes to rest
+            jetIndices.Add(jetIndex % JetStream.Length);
             char nextMove = JetStream[jetIndex % JetStream.Length];
             moveByJet(nextRock, nextMove);
-            jetIndex += 1;        
+            jetIndex += 1;
 
             while (canDrop(nextRock)){            
                 nextRock.dropOne();
@@ -147,6 +175,7 @@ class Day17
 
             // when the rock has come to rest, add rock to chamber tower
             settleRock(nextRock);
+            
         }
             
 
@@ -207,7 +236,8 @@ class Day17
             if (jetMove == '>')
             {
                 deltaX = 1;
-            } else if (jetMove == '<')
+            }
+            else if (jetMove == '<')
             {
                 deltaX = -1;
             }
@@ -257,6 +287,72 @@ class Day17
             return res;
         }
 
+        public int getMostCommonJetIndex()
+        {
+            int maxFreq = -1;
+            int maxIndex = -1;
+            var frequency = jetIndices.GroupBy(x => x).ToDictionary(x => x.Key, x => x.Count());
+            foreach(var item in frequency)
+            {
+                if (item.Value > maxFreq)
+                {
+                    maxFreq = item.Value;
+                    maxIndex = item.Key;
+                }
+            }
+            return maxIndex;
+        }
+
+        public int solvePart1(int n)
+        {
+            // Drop n rocks and return the height of the tower
+
+            for (int i = 0; i < n; i++)
+            {                        
+                this.dropNextRock(i % 5);            
+            }   
+            return this.getNumberOfLines();
+        }
+
+        public long solvePart2(long n)
+        {
+            // Drop n rocks and return the height of the tower, when n is very large
+            
+            this.resetChamber();
+            solvePart1((int) 60000);            
+            this.jetIndexToMatch = this.getMostCommonJetIndex();            
+            
+            for (int i = 60000; i < 80000; i++)
+            {                        
+                this.dropNextRock(i % 5);            
+            }            
+            
+            long res2 = -1;                              
+            if (towerHeights.Count >= 2 && towerRocks.Count >= 2)
+            {                
+                this.resetChamber();
+
+                int deltaHeight = towerHeights[1] - towerHeights[0];
+                int deltaRocks = towerRocks[1] - towerRocks[0];
+
+                long extraCycles = (n - towerRocks[1]) % deltaRocks;
+                long numJumps = (n - towerRocks[1]) / deltaRocks;
+
+                long heightBeforeExtraCycles = this.getNumberOfLines();
+                for (long i = 0; i < towerRocks[1] + extraCycles; i++)
+                {                        
+                    this.dropNextRock((int)(i % 5));
+                }                
+
+                long totNumRocks = this.NumberOfRocks + numJumps * deltaRocks;
+                // Console.WriteLine("Total number of rocks (using cycle): " + totNumRocks);
+                
+                res2 = getNumberOfLines() + numJumps * deltaHeight;
+            }
+            
+            return res2;
+        }
+
         public override string ToString()
         {                                    
             // Returns string containing the top 20 lines of the cave from top to bottom
@@ -294,18 +390,19 @@ class Day17
         string real = System.IO.File.ReadAllText("input.txt");
         string test = System.IO.File.ReadAllText("testinput.txt");
 
-        string input = real; //test;
+        string input = real;
         
         // Part 1
         Chamber myChamber = new Chamber(jet: input);        
-        int ntotal = 2022;
-        for (int i = 0; i < ntotal; i++)
-        {                        
-            myChamber.dropNextRock(i % 5);                
-        }            
-                
-        int res1 = myChamber.getNumberOfLines();
-        Console.WriteLine("Res 1: " + res1);         
+        int n1 = 2022;                
+        int res1 = myChamber.solvePart1(n1);
+        
+        Console.WriteLine("Res 1: " + res1);        
 
+        // Part 2
+        long n2 = 1_000_000_000_000;
+        long res2 = myChamber.solvePart2(n2);
+                        
+        Console.WriteLine("Res 2: " + res2);
     }
 }
